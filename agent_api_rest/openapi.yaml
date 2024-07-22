@@ -7,6 +7,8 @@ info:
 servers:
   - url: http://localhost:3033
     description: Development
+  - url: https://agent.poc9.eduwallet.nl
+    description: Demo - POC9
 
 paths:
   /v0/configurations/credential_configurations:

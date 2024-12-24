@@ -1,8 +1,6 @@
-use agent_shared::config::config;
+use agent_shared::config::{config, get_credential_confiugurations};
 use agent_shared::url_utils::UrlAppendHelpers;
-use oid4vci::credential_issuer::{
-    authorization_server_metadata::AuthorizationServerMetadata, credential_issuer_metadata::CredentialIssuerMetadata,
-};
+use oid4vci::credential_issuer::authorization_server_metadata::AuthorizationServerMetadata;
 
 use crate::server_config::command::ServerConfigCommand;
 
@@ -12,10 +10,7 @@ pub fn startup_commands(host: url::Url) -> Vec<ServerConfigCommand> {
 }
 
 pub fn load_server_metadata(base_url: url::Url) -> ServerConfigCommand {
-    let display = config().display.first().map(|display| {
-        let display = serde_json::to_value(display).unwrap();
-        vec![display]
-    });
+    let credential_issuer_metadata = config().credential_issuer_metadata.clone();
 
     ServerConfigCommand::InitializeServerMetadata {
         authorization_server_metadata: Box::new(AuthorizationServerMetadata {
@@ -23,20 +18,15 @@ pub fn load_server_metadata(base_url: url::Url) -> ServerConfigCommand {
             token_endpoint: Some(base_url.append_path_segment("auth/token")),
             ..Default::default()
         }),
-        credential_issuer_metadata: CredentialIssuerMetadata {
-            credential_issuer: base_url.clone(),
-            credential_endpoint: base_url.append_path_segment("openid4vci/credential"),
-            display,
-            ..Default::default()
-        },
+        credential_issuer_metadata,
     }
 }
 
 pub fn create_credentials_supported() -> ServerConfigCommand {
-    let credential_configuration = config()
-        .credential_configurations
+    let credential_configurations = get_credential_confiugurations();
+    let credential_configuration = credential_configurations
         .first()
-        .expect("No credential_configurations found")
+        .expect("No credential configurations found")
         .clone();
 
     ServerConfigCommand::AddCredentialConfiguration {

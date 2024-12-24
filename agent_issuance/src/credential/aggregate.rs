@@ -1,4 +1,4 @@
-use agent_shared::config::{config, get_preferred_did_method, get_preferred_signing_algorithm};
+use agent_shared::config::{config, get_display, get_preferred_did_method, get_preferred_signing_algorithm};
 use async_trait::async_trait;
 use cqrs_es::Aggregate;
 use derivative::Derivative;
@@ -73,13 +73,7 @@ impl Aggregate for Credential {
                     #[cfg(not(feature = "test_utils"))]
                     let issuance_date = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
 
-                    let name = config()
-                        .display
-                        .first()
-                        .expect("Configuration `display.name` missing")
-                        .name
-                        .clone();
-
+                    let name = get_display().name;
                     let issuer: Profile = ProfileBuilder::default()
                         .id(config().url.clone())
                         .type_("Profile")

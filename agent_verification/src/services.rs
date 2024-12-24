@@ -1,4 +1,4 @@
-use agent_shared::config::{config, get_all_enabled_did_methods, get_preferred_did_method};
+use agent_shared::config::{config, get_all_enabled_did_methods, get_display, get_preferred_did_method};
 use jsonwebtoken::Algorithm;
 use oid4vc_core::{client_metadata::ClientMetadataResource, Subject};
 use oid4vc_manager::RelyingPartyManager;
@@ -16,12 +16,9 @@ pub struct VerificationServices {
 
 impl VerificationServices {
     pub fn new(verifier: Arc<dyn Subject>) -> Self {
-        let client_name = config().display.first().as_ref().map(|display| display.name.clone());
-
-        let logo_uri = config()
-            .display
-            .first()
-            .and_then(|display| display.logo.as_ref().and_then(|logo| logo.uri.clone()));
+        let display = get_display();
+        let client_name = Some(display.name);
+        let logo_uri = display.logo.and_then(|logo| logo.uri);
 
         let signing_algorithms_supported: Vec<Algorithm> = config()
             .signing_algorithms_supported

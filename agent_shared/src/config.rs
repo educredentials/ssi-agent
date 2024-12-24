@@ -1,5 +1,7 @@
 use config::ConfigError;
-use oid4vci::credential_format_profiles::{CredentialFormats, WithParameters};
+use oid4vci::{
+    credential_format_profiles::{CredentialFormats, WithParameters}, credential_issuer::credential_issuer_metadata::CredentialIssuerMetadata,
+};
 use oid4vp::ClaimFormatDesignation;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -22,11 +24,10 @@ pub struct ApplicationConfiguration {
     pub external_server_response_timeout_ms: Option<u64>,
     pub domain_linkage_enabled: bool,
     pub secret_manager: SecretManagerConfig,
-    pub credential_configurations: Vec<CredentialConfiguration>,
     pub signing_algorithms_supported: HashMap<jsonwebtoken::Algorithm, ToggleOptions>,
-    pub display: Vec<Display>,
     pub event_publishers: Option<EventPublishers>,
     pub vp_formats: HashMap<ClaimFormatDesignation, ToggleOptions>,
+    pub credential_issuer_metadata: CredentialIssuerMetadata,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -326,4 +327,29 @@ pub fn get_preferred_signing_algorithm() -> jsonwebtoken::Algorithm {
         .first()
         .cloned()
         .expect("Please set a signing algorithm as `preferred` in the configuration")
+}
+
+pub fn get_credential_confiugurations() -> Vec<CredentialConfiguration> {
+    let credential_configurations = &config()
+        .credential_issuer_metadata
+        .credential_configurations_supported;
+
+    credential_configurations.iter().map(|(id, credential_format)| {
+        CredentialConfiguration {
+            credential_configuration_id: id.clone(),
+            credential_format_with_parameters: credential_format.credential_format.clone(),
+            display: credential_format.display.clone(),
+        }
+    }).collect()
+}
+
+pub fn get_display() -> Display {
+   let displays = config().credential_issuer_metadata.display.clone().expect("No display empty in config: credential_issuer_metadata.display");
+
+    // TODO: display is a list of languages, so we should pick the right one based on what?
+    let display = displays
+        .first()
+        .expect("No display found in config: credential_issuer_metadata.display[]");
+
+    serde_json::from_value(display.clone()).expect("Could not deserialize display")
 }

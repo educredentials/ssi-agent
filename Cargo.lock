@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "agent_api_rest"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_event_publisher_http",
  "agent_issuance",
@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "agent_application"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_api_rest",
  "agent_event_publisher_http",
@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "agent_event_publisher_http"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_event_publisher_http",
  "agent_issuance",
@@ -146,7 +146,7 @@ dependencies = [
 
 [[package]]
 name = "agent_issuance"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_issuance",
  "agent_secret_manager",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "agent_secret_manager"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_shared",
  "anyhow",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "agent_shared"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -240,7 +240,7 @@ dependencies = [
 
 [[package]]
 name = "agent_store"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_issuance",
  "agent_shared",
@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "agent_verification"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "agent_secret_manager",
  "agent_shared",

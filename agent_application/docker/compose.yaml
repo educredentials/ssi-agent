@@ -14,7 +14,6 @@ services:
   cqrs-postgres-db:
     container_name: cqrs-postgres-db
     image: postgres
-    restart: always
     ports:
       - 5432:5432
     environment:
@@ -23,6 +22,7 @@ services:
       POSTGRES_PASSWORD: demo_pass
     volumes:
       - "./db:/docker-entrypoint-initdb.d"
+
   ssi-agent:
     # image: impiercetechnologies/ssi-agent:476360a
     build:

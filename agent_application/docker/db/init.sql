@@ -66,5 +66,6 @@ CREATE TABLE connection
     PRIMARY KEY (view_id)
 );
 
+DROP ROLE IF EXISTS demo_user;
 CREATE USER demo_user WITH ENCRYPTED PASSWORD 'demo_pass';
 GRANT ALL PRIVILEGES ON DATABASE postgres TO demo_user;

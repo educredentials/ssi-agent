@@ -1,6 +1,5 @@
 use agent_shared::config::{config, SecretManagerConfig};
 use did_manager::SecretManager;
-use log::info;
 
 pub mod subject;
 
@@ -16,11 +15,10 @@ pub async fn secret_manager() -> SecretManager {
         issuer_fragment,
     } = config().secret_manager.clone();
 
+    // TODO: move this to a separate binary entirely, not part of the secret manager getter!
     if generate_stronghold {
-        info!("Generating new secret manager");
         SecretManager::generate(snapshot_path, password).await.unwrap()
     } else {
-        info!("Loading secret manager from Stronghold snapshot");
         SecretManager::load(
             snapshot_path,
             password,

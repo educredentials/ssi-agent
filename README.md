@@ -50,3 +50,14 @@ This project uses [semantic-release](https://semantic-release.gitbook.io) - plai
 ### Merging strategy
 
 All PRs to any of the branches defined above are squashed to preserve a clean history. Since the PR title is used as the commit message, it is important to follow a conventional commit style in order to allow semantic releases (next version is determined by the commits since the last version). Therefore, the PR title is automatically linted by a GitHub Action.
+
+
+## Edubadges
+
+In order to prepare this for use in edubadges, we must change the following
+
+- [ ] Build a docker image with edubadges specific configuration in github actions
+- [ ] Provide a docker compose file that uses this image but somehow inherits the upstream docker compose file
+- [x] Implement an OBV3 credential config
+- [ ] Implement an OBV3 credential presentation config
+- [ ] Enable Authorization Code flow with SurfConnext as OIDC provider

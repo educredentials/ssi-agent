@@ -161,3 +161,27 @@ OpenID4VCI Pre-Authorized Code Flow
 30-31: See steps 4-5.
    32: The API returns a `200 OK` response with the credential(s) in the response body.
 ```
+
+## Edubadges
+
+In order to prepare this for use in edubadges, we must, may or wish to change the following.
+
+### Must
+
+- [x] Implement an OBV3 credential config
+- [ ] Implement an OBV3 credential presentation config
+- [ ] Add a way to set a authorization_servers in CredentialIssuerMetadata
+
+### May
+
+- [ ] Update types with latest draft of openid4vci - is there a sync mechanism for this? Manually?
+- [ ] Update dependencies to latest stable
+- [ ] Allow multiple credential configurations
+- [ ] Implement stronghold generation and/or management in separate bin. *NOT* part of the boot process, thats too flakey
+
+### Wish
+
+- [ ] Refactor the config logic: remove config command/events, this shouldnt live in events and database.
+- [ ] Choose what to congfigure with ENV vars and what in config files. Remove duplication and inconsistent duplication through SSI_AGENT__SOMEVAR__SOME_SUBVAR etc. Either YAML or ENV, not both
+- [ ] Document all ENV vars and all config vars.
+

@@ -1,6 +1,16 @@
 name: ssi-agent
 
 services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    environment:
+      # Make sure to add an NGROK_AUTHTOKEN to .env, or the environment of the host
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: ["http", "--url=${NGROK_URL}", "--log=stdout", "http://ssi-agent:3033"]
+    ports:
+      - 4040:4040 # diagnostics and management UI
+
   cqrs-postgres-db:
     container_name: cqrs-postgres-db
     image: postgres

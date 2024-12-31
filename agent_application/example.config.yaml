@@ -70,8 +70,6 @@ credential_configurations:
 
 # Key configuration (temporary)
 secret_manager:
-  # Set this to `true` in order to generate a new stronghold file if it does not exist yet.
-  generate_stronghold: true
   stronghold_path: "/tmp/local.stronghold"
   # stronghold_password: "" <== Should be injected through the env variable `UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD`
   # stronghold_password_file: ""

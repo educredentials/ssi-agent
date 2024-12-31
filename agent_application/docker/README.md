@@ -5,7 +5,9 @@
 In case you want to build the image in isolation, you can run the following command from within the directory `/agent_application`:
 
 ```bash
-docker build -f docker/Dockerfile -t ssi-agent ..
+docker build --build-arg UNICORE__SECRET_MANAGER__STRONGHOLD_PATH=/app/res/stronghold\
+             --build-arg UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD=very-secret\
+              -f docker/Dockerfile -t ssi-agent ..
 ```
 
 ## Local development

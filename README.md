@@ -166,6 +166,7 @@ OpenID4VCI Pre-Authorized Code Flow
 
 In order to prepare this for use in edubadges, we must, may or wish to change the following.
 
+
 ### Must
 
 - [x] Implement an OBV3 credential config
@@ -177,7 +178,7 @@ In order to prepare this for use in edubadges, we must, may or wish to change th
 - [ ] Update types with latest draft of openid4vci - is there a sync mechanism for this? Manually?
 - [ ] Update dependencies to latest stable
 - [ ] Allow multiple credential configurations
-- [ ] Implement stronghold generation and/or management in separate bin. *NOT* part of the boot process, thats too flakey
+- [x] Implement stronghold generation and/or management in separate bin. *NOT* part of the boot process, thats too flakey
 
 ### Wish
 
@@ -185,3 +186,12 @@ In order to prepare this for use in edubadges, we must, may or wish to change th
 - [ ] Choose what to congfigure with ENV vars and what in config files. Remove duplication and inconsistent duplication through SSI_AGENT__SOMEVAR__SOME_SUBVAR etc. Either YAML or ENV, not both
 - [ ] Document all ENV vars and all config vars.
 
+### Changes in Edubadges Branch
+
+Stronghold generation separate bin. Removed it from the boot process. And made
+part of the agent_secret_manager. It generates the stronghold file based on ENV vars and/or configuration as main service does.
+Run it with:
+
+```bash
+cargo run -p agent_secret_manager
+```

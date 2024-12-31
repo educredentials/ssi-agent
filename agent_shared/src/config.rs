@@ -61,7 +61,6 @@ pub struct EventStorePostgresConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct SecretManagerConfig {
     #[serde(default)]
-    pub generate_stronghold: bool,
     pub stronghold_path: String,
     pub stronghold_password: String,
     pub issuer_eddsa_key_id: Option<String>,

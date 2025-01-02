@@ -1,0 +1,5 @@
+FROM ssi-secret_manager:latest AS runtime
+WORKDIR /app
+COPY ./agent_application/docker/entrypoint-ssi-agent.sh /usr/local/bin/entrypoint-ssi-agent.sh
+
+CMD ["/usr/local/bin/entrypoint-ssi-agent.sh"]

@@ -23,13 +23,29 @@ services:
     volumes:
       - "./db:/docker-entrypoint-initdb.d"
 
-  ssi-agent:
+  ssi-secret_manager:
+    image: ssi-secret_manager:latest
     build:
       context: ../..
-      dockerfile: ./agent_application/docker/Dockerfile
-      args:
-        UNICORE__SECRET_MANAGER__STRONGHOLD_PATH: /app/res/stronghold
-        UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD: secure_password
+      dockerfile: ./agent_application/docker/Dockerfile.secret_manager
+    environment:
+      UNICORE__LOG_FORMAT: text
+      UNICORE__SECRET_MANAGER__STRONGHOLD_PATH: "/app/res/stronghold"
+      UNICORE__SECRET_MANAGER__STRONGHOLD_LOG_PATH: "/app/res/stronghold.log"
+      UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD: "secure_password"
+      RUST_LOG: "*=debug"
+    volumes:
+      - ../../agent_application/config.yaml:/app/agent_application/config.yaml
+      - ssi_agent_res:/app/res/
+
+  ssi-agent:
+    image: ssi-agent:latest
+    build:
+      context: ../..
+      dockerfile: ./agent_application/docker/Dockerfile.agent
+    depends_on:
+      ssi-secret_manager:
+        condition: service_completed_successfully
     ports:
       - 3033:3033
     environment:
@@ -40,8 +56,9 @@ services:
 
       UNICORE__SECRET_MANAGER__STRONGHOLD_PATH: "/app/res/stronghold"
       UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD: "secure_password"
+      UNICORE__SECRET_MANAGER__STRONGHOLD_LOG_PATH: "/app/res/stronghold.log"
       
-      RUST_LOG: debug
+      RUST_LOG: "*=debug"
     volumes:
       - ../../agent_application/config.yaml:/app/agent_application/config.yaml
       - ../../agent_verification/presentation_definitions:/app/agent_verification/presentation_definitions

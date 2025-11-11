@@ -57,7 +57,9 @@ All PRs to any of the branches defined above are squashed to preserve a clean hi
 In order to prepare this for use in edubadges, we must change the following
 
 - [ ] Build a docker image with edubadges specific configuration in github actions
-- [ ] Provide a docker compose file that uses this image but somehow inherits the upstream docker compose file
+- [x] Provide a Docker Compose overlay file that layers on top of the upstream compose.yaml and adds ngrok
 - [x] Implement an OBV3 credential config
 - [ ] Implement an OBV3 credential presentation config
 - [ ] Enable Authorization Code flow with SurfConnext as OIDC provider
+
+See [agent_application/docker/README.md](agent_application/docker/README.md) for details on how to run the agent application with edubadges configuration included.

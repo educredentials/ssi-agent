@@ -1,0 +1,14 @@
+FROM postgres:16-alpine
+
+# Copy the initialization script and SQL file
+COPY agent_application/docker/db/init-db.sh /init-db.sh
+COPY agent_application/docker/db/managed-init.sql /init.sql
+
+# Make the script executable
+RUN chmod +x /init-db.sh
+
+# Environment variable for connection string
+ENV UNICORE__EVENT_STORE__CONNECTION_STRING=""
+
+# Run the initialization script
+CMD ["/init-db.sh"]

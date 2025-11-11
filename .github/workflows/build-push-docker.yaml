@@ -1,124 +1,72 @@
-# https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
-name: Build and push Docker image
+# This workflow builds and pushes a Docker image for custom Edubadges (impierce/ssi-agent).
+# It is designed for deployment to the SDP (SURF Development Platform) container registry.
+# No other checks (tests, linting, etc.) are performed here—these are expected to be handled upstream.
+# 
+# Required secrets:
+#   - CR_SURF_USERNAME: Username for cr.surf.nl registry
+#   - CR_SURF_PASSWORD: Password for cr.surf.nl registry
+#
+# Docker image tags:
+#   - latest: Always pushed on edubadges branch or tag
+#   - <version>: Extracted from Cargo.toml (e.g., 1.2.3 → cr.surf.nl/impierce/ssi-agent:1.2.3)
+#   - git-tag-<tag>: If a git tag is present (e.g., v1.2.3 → cr.surf.nl/impierce/ssi-agent:git-tag-v1.2.3)
+#
+# Example:
+#   - On push to edubadges: tags 'latest' and '<version>' are pushed
+#   - On push of tag 'v1.2.3': tags 'latest', '<version>', and 'git-tag-v1.2.3' are pushed
+#
+# NOTE: This workflow uses Dockerfile.dev for building the image, as required for development and SDP compatibility.
+
+name: Build and Push Docker Image
 
 on:
-  # TODO: `workflow_dispatch` should be removed once manual docker builds from branches are not needed anymore
-  workflow_dispatch:
-
-env:
-  REGISTRY_IMAGE: impiercetechnologies/ssi-agent
+  push:
+    branches: [edubadges]
+    tags: ["*"]
+  pull_request:
+    branches: [edubadges]
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            runs-on: ubuntu-latest
-          - platform: linux/arm64
-            runs-on: linux-arm64_4-core-16gb
-    runs-on: ${{ matrix.runs-on }}
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
     steps:
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Log in to SDP Container Registry "Harbor"
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          images: ${{ env.REGISTRY_IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=sha
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+          registry: cr.surf.nl
+          username: ${{ secrets.CR_SURF_USERNAME }}
+          password: ${{ secrets.CR_SURF_PASSWORD }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract version from Cargo.toml
+        id: version
+        run: echo "VERSION=$(cargo read-manifest --manifest-path agent_application/Cargo.toml | jq -r '.version')" >> $GITHUB_OUTPUT
 
-      - name: Build and push by digest
-        id: build
-        uses: docker/build-push-action@v6
+      - name: Get Git tag if available
+        id: git_tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "HAS_TAG=true" >> $GITHUB_OUTPUT
+          else
+            echo "HAS_TAG=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
         with:
           context: .
-          file: agent_application/docker/Dockerfile
-          platforms: ${{ matrix.platform }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          build-args: |
-            APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            DOCKER_BUILD_TIMESTAMP=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-            GIT_COMMIT_HASH=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  merge:
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          path: ${{ runner.temp }}/digests
-          pattern: digests-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY_IMAGE }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ./agent_application/docker/Dockerfile.dev  # Use Dockerfile.dev for SDP/development builds
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=sha
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests
-        run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
-
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
+            cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:latest
+            cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:${{ steps.version.outputs.VERSION }}
+            ${{ steps.git_tag.outputs.HAS_TAG == 'true' && format('cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:{0}', steps.git_tag.outputs.GIT_TAG) || '' }}

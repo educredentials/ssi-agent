@@ -1,0 +1,57 @@
+---
+# Application
+log_format: "text"
+event_store:
+  type: "postgres"
+  # connection_string: "" <== Should be injected through the env variable `UNICORE__EVENT_STORE__CONNECTION_STRING`
+application_url: "http://localhost:3033"
+# base_path: "unicore" <== Runs all endpoints with a base path such as `https://ssi-agent.example.org/unicore`
+cors_enabled: true
+external_server_response_timeout_ms: 500
+
+did_methods:
+  did_jwk:
+    enabled: true
+    preferred: true
+  did_key:
+    enabled: true
+  did_web:
+    enabled: false
+
+domain_linkage_enabled: false
+
+signing_algorithms_supported:
+  es256:
+    enabled: true
+    preferred: true
+  eddsa:
+    enabled: false
+
+vp_formats:
+  jwt_vc_json:
+    enabled: true
+  jwt_vp_json:
+    enabled: true
+
+event_publishers:
+  http:
+    enabled: false
+    target_url: "https://my-domain.example.org/event-subscriber"
+    headers:
+      Authorization: Basic YWxhZGRpbjpvcGVuc2VzYW1l
+    events:
+      server_config: []
+      credential: [UnsignedCredentialCreated, CredentialSigned]
+
+display:
+  - name: EduBadges
+    locale: en
+    logo:
+      uri: https://www.surf.nl/files/styles/social_media/public/2023-12/edubadges-icoon-met-witruimte-v2_2.png
+      alt_text: EduBadges Logo
+
+credential_configuration_file: './edubadges.credential_configurations.json'
+
+secret_manager:
+  stronghold_path: "/tmp/local.stronghold.dat"
+  # stronghold_password: "" <== Should be injected through the env variable `UNICORE__SECRET_MANAGER__STRONGHOLD_PASSWORD`

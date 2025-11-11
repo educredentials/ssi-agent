@@ -39,6 +39,19 @@ docker compose up
 > [!NOTE]
 > In case you need a base bath (for example when running behind a reverse proxy), you can set the `UNICORE__BASE_PATH` to a value such as `ssi-agent`.
 
+## Local Development with Edubadges Configuration
+
+Use the above "Local Development" instructions. But instead of running `docker compose up`, define both our and the default docker compose files:
+
+`docker compose -f compose.yaml -f edubadges-compose.yaml up`
+
+Requirements:
+- Ensure `NGROK_AUTHTOKEN` and `NGROK_URL` are set in your environment or `.env`.
+
+The overlay changes:
+
+- adds `ngrok` service so that the issuer can be accessed from the internet.
+
 ## Leveraging Just-in-Time Data Request Events
 
 UniCore facilitates dynamic integration with external systems through just-in-time data request events, dispatched seamlessly via an HTTP Event Publisher. This enables real-time data retrieval and on-demand generation, enhancing flexibility and efficiency in your SSI ecosystem.

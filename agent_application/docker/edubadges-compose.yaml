@@ -1,0 +1,35 @@
+# Edubadges overlay Compose file
+#
+# This file adds overrides so that the setup works for edubadges.
+# It is intended to be layered with the upstream compose file, not used alone.
+#
+# Usage (from repository root):
+#   docker compose \
+#     -f agent_application/docker/compose.yaml \
+#     -f agent_application/docker/edubadges-compose.yaml \
+#     up -d
+#
+# Tear down:
+#   docker compose \
+#     -f agent_application/docker/compose.yaml \
+#     -f agent_application/docker/edubadges-compose.yaml \
+#     down
+services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: ["http", "--url=${NGROK_URL}", "--log=stdout", "http://ssi-agent:3033"]
+    ports:
+      - 4040:4040
+    depends_on:
+      - ssi-agent
+
+  # Override the config mount for ssi-agent when using the edubadges overlay.
+  # This bind will supersede the one from the base compose file for /app/config.yaml.
+  ssi-agent:
+    build:
+      dockerfile: ./agent_application/docker/Dockerfile.dev
+    volumes:
+      - ../edubadges.config.yaml:/app/config.yaml

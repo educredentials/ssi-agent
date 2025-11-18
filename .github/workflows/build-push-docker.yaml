@@ -1,5 +1,5 @@
 # This workflow builds and pushes a Docker image for custom Edubadges (impierce/ssi-agent).
-# It is designed for deployment to the SDP (SURF Data Platform) container registry.
+# It is designed for deployment to the SDP (SURF Development Platform) container registry.
 # No other checks (tests, linting, etc.) are performed here—these are expected to be handled upstream.
 # 
 # Required secrets:

@@ -1,0 +1,61 @@
+# This workflow builds and pushes the database init container image.
+# It is designed for deployment to the SDP (SURF Data Platform) container registry.
+# 
+# Required secrets:
+#   - CR_SURF_USERNAME: Username for cr.surf.nl registry
+#   - CR_SURF_PASSWORD: Password for cr.surf.nl registry
+#
+# Docker image tags:
+#   - latest: Always pushed on edubadges branch or tag
+#
+# Example:
+#   - On push to edubadges: tag 'latest' is pushed
+#   - On push of tag: tag 'latest' is pushed
+
+name: Build and Push Init Container Image
+
+on:
+  push:
+    branches: [edubadges]
+    tags: ["*"]
+    paths:
+      - 'agent_application/docker/db/managed-init.sql'
+      - 'agent_application/docker/Dockerfile.init'
+      - 'agent_application/docker/db/init-db.sh'
+      - '.github/workflows/build-push-init.yaml'
+  pull_request:
+    branches: [edubadges]
+    paths:
+      - 'agent_application/docker/db/managed-init.sql'
+      - 'agent_application/docker/Dockerfile.init'
+      - 'agent_application/docker/db/init-db.sh'
+      - '.github/workflows/build-push-init.yaml'
+
+jobs:
+  build:
+    name: Build and Push Init Container Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to SDP Container Registry "Harbor"
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          registry: cr.surf.nl
+          username: ${{ secrets.CR_SURF_USERNAME }}
+          password: ${{ secrets.CR_SURF_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ./agent_application/docker/Dockerfile.init
+          tags: |
+            cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent-init:latest

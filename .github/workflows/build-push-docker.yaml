@@ -7,22 +7,23 @@
 #   - CR_SURF_PASSWORD: Password for cr.surf.nl registry
 #
 # Docker image tags:
-#   - latest: Always pushed on edubadges branch or tag
-#   - <version>: Extracted from Cargo.toml (e.g., 1.2.3 → cr.surf.nl/impierce/ssi-agent:1.2.3)
-#   - git-tag-<tag>: If a git tag is present (e.g., v1.2.3 → cr.surf.nl/impierce/ssi-agent:git-tag-v1.2.3)
+#   - Development builds (branch): 'latest' and '<version>' from Cargo.toml
+#   - Release builds (ewi-* tag): Only the git tag (e.g., ewi-1.2.3)
+#
+# Build variants:
+#   - Branch builds: Use Dockerfile.dev (debug build for development/SDP)
+#   - Tag builds (ewi-*): Use Dockerfile (release build for production)
 #
 # Example:
-#   - On push to edubadges: tags 'latest' and '<version>' are pushed
-#   - On push of tag 'v1.2.3': tags 'latest', '<version>', and 'git-tag-v1.2.3' are pushed
-#
-# NOTE: This workflow uses Dockerfile.dev for building the image, as required for development and SDP compatibility.
+#   - On push to edubadges: tags 'latest' and '1.2.3' are pushed (debug build)
+#   - On push of tag 'ewi-1.2.3': only tag 'ewi-1.2.3' is pushed (release build)
 
 name: Build and Push Docker Image
 
 on:
   push:
     branches: [edubadges]
-    tags: ["*"]
+    tags: ["ewi-*"]
   pull_request:
     branches: [edubadges]
 
@@ -45,28 +46,31 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Extract version from Cargo.toml
+        if: ${{ !startsWith(github.ref, 'refs/tags/ewi-') }}
         id: version
         run: echo "VERSION=$(cargo read-manifest --manifest-path agent_application/Cargo.toml | jq -r '.version')" >> $GITHUB_OUTPUT
 
-      - name: Get Git tag if available
-        id: git_tag
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-            echo "HAS_TAG=true" >> $GITHUB_OUTPUT
-          else
-            echo "HAS_TAG=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build and push Docker image
+      - name: Build and push Docker image (development)
+        if: ${{ !startsWith(github.ref, 'refs/tags/ewi-') }}
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          file: ./agent_application/docker/Dockerfile.dev  # Use Dockerfile.dev for SDP/development builds
+          file: ./agent_application/docker/Dockerfile.dev
           tags: |
             cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:latest
             cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:${{ steps.version.outputs.VERSION }}
-            ${{ steps.git_tag.outputs.HAS_TAG == 'true' && format('cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:{0}', steps.git_tag.outputs.GIT_TAG) || '' }}
+
+      - name: Build and push Docker image (release)
+        if: startsWith(github.ref, 'refs/tags/ewi-')
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ./agent_application/docker/Dockerfile  # This Dockerfile uses --release for builds
+          tags: |
+            cr.surf.nl/edubadges-edubadges/edubadges/ssi-agent:${{ github.ref_name }}

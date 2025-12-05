@@ -10,6 +10,70 @@ CREATE TABLE IF NOT EXISTS events
     PRIMARY KEY (aggregate_type, aggregate_id, sequence)
 );
 
+CREATE TABLE IF NOT EXISTS access_token
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS all_access_tokens
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS authorization_code
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS all_authorization_codes
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS client
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS all_clients
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS oauth2_authorization_request
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS all_oauth2_authorization_requests
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
 CREATE TABLE IF NOT EXISTS connection
 (
     view_id           text                        NOT NULL,
@@ -59,6 +123,22 @@ CREATE TABLE IF NOT EXISTS service
 );
 
 CREATE TABLE IF NOT EXISTS all_services
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS template
+(
+    view_id           text                        NOT NULL,
+    version           bigint CHECK (version >= 0) NOT NULL,
+    payload           json                        NOT NULL,
+    PRIMARY KEY (view_id)
+);
+
+CREATE TABLE IF NOT EXISTS all_templates
 (
     view_id           text                        NOT NULL,
     version           bigint CHECK (version >= 0) NOT NULL,

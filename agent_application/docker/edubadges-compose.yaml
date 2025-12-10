@@ -15,9 +15,13 @@
 #     -f agent_application/docker/edubadges-compose.yaml \
 #     down
 services:
+  cqrs-postgres-db:
+    restart: no
+  pg-admin:
+    restart: no
   ngrok:
     image: ngrok/ngrok:latest
-    restart: unless-stopped
+    restart: on-failure
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     command: ["http", "--url=${NGROK_URL}", "--log=stdout", "http://ssi-agent:3033"]

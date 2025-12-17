@@ -7,7 +7,12 @@ use cqrs_es::{
     Aggregate, CqrsFramework, Query, View,
 };
 use std::{collections::HashMap, sync::Arc};
+
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::sync::Mutex;
+
+#[cfg(target_arch = "wasm32")]
+use std::sync::Mutex;
 
 #[derive(Default)]
 struct MemRepository<V: View<A>, A: Aggregate> {

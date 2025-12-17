@@ -55,7 +55,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 pub mod in_memory;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub mod mongodb;
+
+#[cfg(not(target_arch = "wasm32"))]
 pub mod postgres;
 
 /// A generic command handler for a specific aggregate.

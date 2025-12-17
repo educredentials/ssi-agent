@@ -5,32 +5,19 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-agent_shared = { path = "../agent_shared" }
-agent_secret_manager = { path = "../agent_secret_manager" }
+console_error_panic_hook = { version = "0.1", optional = true }
+getrandom = { version = "0.2", features = ["js"], optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = ["console", "Window", "Storage"], optional = true }
+# WASM-specific dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
 
-anyhow.workspace = true
-async-trait.workspace = true
-cqrs-es.workspace = true
-chrono.workspace = true
-types-ob-v3 = { git = "https://github.com/impierce/digital-credential-data-models", rev = "9f16c27" }
-derivative.workspace = true
-identity_core.workspace = true
-identity_credential.workspace = true
-jsonwebtoken.workspace = true
-oauth_tsl.workspace = true
-oid4vci.workspace = true
-oid4vc-core.workspace = true
-rand.workspace = true
-reqwest.workspace = true
+# Dependencies needed for both WASM and native
 serde.workspace = true
 serde_json.workspace = true
-serde_json_path_to_error.workspace = true
-serde_with.workspace = true
-strum.workspace = true
-strum_macros.workspace = true
+anyhow.workspace = true
 thiserror.workspace = true
-tracing.workspace = true
-url.workspace = true
 
 # `test_utils` dependencies
 lazy_static = { workspace = true, optional = true }
@@ -48,5 +35,51 @@ async-std.workspace = true
 serial_test = "3.0"
 tracing-test.workspace = true
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [features]
+default = []
 test_utils = ["dep:lazy_static", "dep:once_cell", "dep:rstest"]
+wasm = [
+    "dep:wasm-bindgen",
+    "dep:wasm-bindgen-futures",
+    "dep:js-sys",
+    "dep:web-sys",
+    "dep:getrandom",
+    "dep:console_error_panic_hook",
+]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+agent_shared = { path = "../agent_shared" }
+agent_secret_manager = { path = "../agent_secret_manager" }
+
+# Native-only dependencies
+async-trait.workspace = true
+cqrs-es.workspace = true
+chrono.workspace = true
+types-ob-v3 = { git = "https://github.com/impierce/digital-credential-data-models", rev = "9f16c27" }
+derivative.workspace = true
+identity_core.workspace = true
+identity_credential.workspace = true
+jsonwebtoken.workspace = true
+oauth_tsl.workspace = true
+oid4vci.workspace = true
+oid4vc-core.workspace = true
+rand.workspace = true
+reqwest.workspace = true
+serde_json_path_to_error.workspace = true
+serde_with.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+tracing.workspace = true
+url.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+# WASM-specific crates
+serde-wasm-bindgen = "0.6"
+# Override reqwest for WASM - use default (no rustls-tls)
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+# Override tokio for WASM - only use supported features
+tokio = { version = "1.46", default-features = false, features = ["sync", "macros"] }

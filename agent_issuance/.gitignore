@@ -1,0 +1,21 @@
+# WASM build artifacts
+/pkg/
+*.wasm
+*.wasm.map
+
+# Build directories
+/target/
+
+# Node modules (if using npm)
+/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

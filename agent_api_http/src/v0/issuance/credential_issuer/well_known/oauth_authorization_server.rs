@@ -1,4 +1,3 @@
-use crate::handlers::query_handler;
 use agent_issuance::{
     server_config::views::ServerConfigView,
     state::{IssuanceState, SERVER_CONFIG_ID},
@@ -11,10 +10,12 @@ use axum::{
 use http_api_problem::ApiError;
 use std::sync::Arc;
 
+use crate::handlers::public_query_handler;
+
 // TODO: move this to `authorization/authorization_server/well_known.rs`!
 #[axum_macros::debug_handler]
 pub(crate) async fn oauth_authorization_server(State(state): State<Arc<IssuanceState>>) -> Result<Response, ApiError> {
-    match query_handler(SERVER_CONFIG_ID, &state.query.server_config).await? {
+    match public_query_handler(SERVER_CONFIG_ID, &state.query.server_config).await? {
         Some(ServerConfigView {
             authorization_server_metadata,
             ..
@@ -26,7 +27,10 @@ pub(crate) async fn oauth_authorization_server(State(state): State<Arc<IssuanceS
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::v0::issuance::router;
+    use crate::v0::issuance::{
+        credentials::tests::{create_test_template, setup_library_state},
+        router,
+    };
     use agent_issuance::{services::IssuanceServices, state::initialize};
     use agent_secret_manager::service::Service;
     use agent_store::{in_memory::InMemory, issuance_state};
@@ -78,7 +82,10 @@ mod tests {
             Arc::new(issuance_state(&InMemory, IssuanceServices::default().await, Default::default()).await);
         initialize(&issuance_state).await.unwrap();
 
-        let mut app = router(issuance_state);
+        let library_state = setup_library_state(&issuance_state).await;
+        create_test_template(&library_state).await;
+
+        let mut app = router((issuance_state.clone(), library_state));
 
         let _authorization_server_metadata = oauth_authorization_server(&mut app).await;
     }

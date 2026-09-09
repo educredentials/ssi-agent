@@ -1,4 +1,4 @@
-use crate::handlers::command_handler;
+use crate::handlers::public_command_handler;
 use agent_verification::{
     authorization_request::command::AuthorizationRequestCommand, generic_oid4vc::GenericAuthorizationResponse,
     state::VerificationState,
@@ -33,7 +33,7 @@ pub(crate) async fn redirect(
     let command = AuthorizationRequestCommand::VerifyAuthorizationResponse { authorization_response };
 
     // Verify the authorization response.
-    command_handler(
+    public_command_handler(
         &authorization_request_id,
         &verification_state.command.authorization_request,
         command,
@@ -127,6 +127,7 @@ pub mod tests {
         assert_eq!(response.status(), StatusCode::OK);
     }
 
+    #[serial_test::serial]
     #[tokio::test(flavor = "multi_thread")]
     #[tracing_test::traced_test]
     async fn test_redirect_endpoint() {
@@ -140,16 +141,23 @@ pub mod tests {
 
         let target_url = format!("{}/ssi-events-subscriber", &mock_server.uri());
 
-        set_config().enable_event_publisher_http();
-        set_config().set_event_publisher_http_target_url(target_url.clone());
-        set_config().set_event_publisher_http_target_events(Events {
-            authorization_request: vec![
-                agent_shared::config::AuthorizationRequestEvent::SIOPv2AuthorizationResponseVerified,
-            ],
-            ..Default::default()
-        });
+        set_config().enable_event_publisher_http(0);
+        set_config().set_event_publisher_http_target_url(0, target_url.clone());
+        set_config().set_event_publisher_http_target_events(
+            0,
+            Events {
+                authorization_request: vec![
+                    agent_shared::config::AuthorizationRequestEvent::SIOPv2AuthorizationResponseVerified,
+                ],
+                ..Default::default()
+            },
+        );
 
-        let event_publishers = vec![Box::new(EventPublisherHttp::load().unwrap()) as Box<dyn EventPublisher>];
+        let event_publishers: Vec<Box<dyn EventPublisher>> = EventPublisherHttp::load()
+            .unwrap()
+            .into_iter()
+            .map(|p| Box::new(p) as Box<dyn EventPublisher>)
+            .collect();
 
         let verification_state =
             Arc::new(verification_state(&InMemory, VerificationServices::default().await, event_publishers).await);

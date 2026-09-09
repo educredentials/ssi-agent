@@ -3,10 +3,12 @@ name = "agent_holder"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 
 [dependencies]
 agent_shared = { path = "../agent_shared" }
 agent_secret_manager = { path = "../agent_secret_manager" }
+shared-kernel.workspace = true
 
 async-trait.workspace = true
 base64.workspace = true
@@ -35,6 +37,7 @@ agent_authorization = { path = "../agent_authorization", features = [
 ] }
 agent_holder = { path = ".", features = ["test_utils"] }
 agent_issuance = { path = "../agent_issuance", features = ["test_utils"] }
+agent_library = { path = "../agent_library", features = ["test_utils"] }
 agent_secret_manager = { path = "../agent_secret_manager", features = [
     "test_utils",
 ] }

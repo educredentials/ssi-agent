@@ -1,4 +1,4 @@
-use crate::handlers::command_handler;
+use crate::handlers::public_command_handler;
 use agent_holder::{offer::command::OfferCommand, state::HolderState};
 use axum::{
     extract::State,
@@ -43,7 +43,7 @@ pub(crate) async fn offers_params(
     };
 
     // Add the Credential Offer to the state.
-    command_handler(&received_offer_id, &state.command.offer, command).await?;
+    public_command_handler(&received_offer_id, &state.command.offer, command).await?;
 
     Ok(StatusCode::OK.into_response())
 }
